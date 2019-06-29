@@ -1,0 +1,19 @@
+Database type :- Mysql 5.7
+
+CREATE TABLE `student` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `firstname` varchar(45) NOT NULL,
+  `lastname` varchar(45) NOT NULL,
+  `address` varchar(250) NOT NULL,
+  `dob` date NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+
+Sample Data for Inserting into table
+
+insert into student (firstname, lastname, address , dob) values 
+					('Pratik', 'Mehta', '13 Teilingerstraat', '1985-03-05');
+insert into student (firstname, lastname, address , dob) values 
+					('John', 'Doe', 'Amsterdam Central', '1990-02-11');
+commit;
