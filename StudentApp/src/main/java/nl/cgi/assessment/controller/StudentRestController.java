@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,6 +29,10 @@ public class StudentRestController {
 	@Autowired
 	private StudentService service;
 	
+	@Value("${data.not.found}")
+	private String noDataFound;
+	
+	
 	@Autowired
 	public StudentRestController (StudentService theService) {
 		service = theService;
@@ -37,8 +42,8 @@ public class StudentRestController {
 	public ResponseEntity<Object> findAll() {
 		logger.debug("getting students");
 		List<Student> studentList = service.findAll();
-		if(studentList.isEmpty()) {
-			return ResponseEntity.ok("No data found.");
+		if(studentList == null ) {
+			return ResponseEntity.ok(noDataFound);
 		}else {
 			return ResponseEntity.ok(studentList);
 		}
@@ -46,7 +51,7 @@ public class StudentRestController {
     }
 	
 	@PostMapping("/student")
-	public ResponseEntity<Object> create(@RequestBody Student student) {
+	public ResponseEntity<String> create(@RequestBody Student student) {
 		logger.debug("Creatingf student = "+student.toString());
 		Student data = service.findByName(student.getFirstName(), student.getLastName());
 		if(data !=null) {
@@ -61,29 +66,30 @@ public class StudentRestController {
     public ResponseEntity<Student> findById(@PathVariable BigDecimal id) {
 		logger.debug("finding studentId = "+id);
         Optional<Student> student = service.findById(id);
-        if (!student.isPresent()) {
+        if (student ==null) {
             logger.warn("Id " + id + " does not exist");
-            ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().build();
+        }else {
+        	return ResponseEntity.ok(student.get());
         }
-        logger.debug("Got student = "+student.get());
-
-        return ResponseEntity.ok(student.get());
     }
 	
 	@PutMapping("/student")
-    public ResponseEntity<Student> update(@RequestBody Student student) {
+    public ResponseEntity<String> update(@RequestBody Student student) {
 		logger.debug("Updating student = "+student.toString());
 		Student data = service.findByName(student.getFirstName(), student.getLastName());
 		
-		if (data.getFirstName() ==null) {
+		if (data ==null) {
             logger.warn("No student with name " + student.getFirstName() + " "+ student.getLastName() 
             + " exists in our record.");
-            ResponseEntity.badRequest().build();
+            return ResponseEntity.ok("No student with name " + student.getFirstName() + " "+ student.getLastName() 
+            + " exists in our record.");
         }else {
         	student.setId(data.getId());
+        	service.save(student);
+        	return ResponseEntity.ok("Details of "+student.getFirstName() + " has been updated successfully.");
         }
-
-        return ResponseEntity.ok(service.save(student));
+		
     }
 	
 	@DeleteMapping("/student/{id}")
